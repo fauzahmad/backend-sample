@@ -59,7 +59,7 @@ module.exports.signup = async function (req, res) {
                         })
 
                 } else {
-                    errorResponse(res, 'User already exists', 404, userFound);
+                    errorResponse(res, 'User already exists', 404, '');
                 }
 
 
