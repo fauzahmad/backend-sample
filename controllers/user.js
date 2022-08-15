@@ -49,7 +49,11 @@ module.exports.signup = async function (req, res) {
                                 console.log(err);
                                 errorResponse(res, 'User not created', 400, err);
                             } else {
-                                errorResponse(res, 'Signup successful', 201, userCreated);
+                                res.status(200).send({
+                                    success: true,
+                                    message: 'Signup successful',
+                                    data: userCreated
+                                })
                             }
 
                         })
