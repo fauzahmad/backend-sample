@@ -123,7 +123,6 @@ module.exports.login = async function (req, res) {
         )
 
 
-
     } catch (error) {
         errorResponse(res, 'Internal server error', 500, error)
     }
