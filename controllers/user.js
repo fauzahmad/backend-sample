@@ -49,9 +49,19 @@ module.exports.signup = async function (req, res) {
                                 console.log(err);
                                 errorResponse(res, 'User not created', 400, err);
                             } else {
+
+                                let token = jwt.sign(
+                                    userCreated.toJSON(),
+                                    "12345678" || process.env.JWT_SESSION_KEY,
+                                    {
+                                        expiresIn: '1d'
+                                    }
+                                )
+
                                 res.status(200).send({
                                     success: true,
                                     message: 'Signup successful',
+                                    token: token,
                                     data: userCreated
                                 })
                             }
@@ -75,9 +85,15 @@ module.exports.signup = async function (req, res) {
 
 module.exports.authenticateToken = function (req, res, next) {
     try {
-        if (req.body.token) {
-            let verification = jwt.verify(req.body.token, '12345678');
-            if (verification) {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            errorResponse(res, "Missing Fields or Empty", 400, errors.array({onlyFirstError: true}))
+        }
+
+        if (req.body.token || req.query.token || req.headers["x-access-token"]) {
+            let decoded = jwt.verify(req.body.token, '12345678');
+            if (decoded) {
+                req.user = decoded
                 next()
             } else {
                 errorResponse(res, 'Token not verified', 400, '')
@@ -89,30 +105,45 @@ module.exports.authenticateToken = function (req, res, next) {
     }
 }
 
-module.exports.login = async function (req, res) {
+module.exports.login = function (req, res) {
 
     try {
 
         user.findOne(
-            {email: req.body.data.email},
+            {email: req.body.email},
             {},
             {},
-            function (err, userFound) {
+            async function (err, userFound) {
                 if (err) {
                     errorResponse(res, '', 400, err)
                 } else {
                     if (userFound) {
-                        let token = jwt.sign(
-                            userFound,
-                            "12345678" || process.env.JWT_SESSION_KEY,
-                            {
-                                expiresIn: '1d'
+                        await bcrypt.compare(req.body.password, userFound.password, (err, result) => {
+                            if (err)
+                                errorResponse(res, 'Password decryption error', 500, err)
+                            else {
+
+                                if (result) {
+                                    let token = jwt.sign(
+                                        userFound.toJSON(),
+                                        "12345678" || process.env.JWT_SESSION_KEY,
+                                        {
+                                            expiresIn: '1d'
+                                        }
+                                    )
+
+                                    res.status(200).send({
+                                        success: true,
+                                        message: 'Login successful',
+                                        token: token,
+                                        data: userFound
+                                    })
+                                }
+                                else {
+                                    errorResponse(res, 'Invalid password', 404, result)
+                                }
                             }
-                        )
-                        res.send({
-                            success: true,
-                            token: token,
-                            data: userFound
+
                         })
 
                     } else {

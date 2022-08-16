@@ -42,7 +42,7 @@ module.exports.readOneNote = function (req, res) {
         let noteId = req.params.noteId;
 
         note.findById(
-            req.body.data.id,
+            noteId,
             {},
             {}
         ).then(noteRecord => {
@@ -129,7 +129,7 @@ module.exports.deleteNote = function (req, res) {
         let noteId = req.params.noteId;
 
         note.findOneAndDelete(
-            req.body.data.id,
+            noteId,
             {}
         ).then(noteDeleted => {
             res.status(200).send({

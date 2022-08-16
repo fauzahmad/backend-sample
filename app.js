@@ -4,7 +4,9 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const cors = require("cors");
 require("./models/db");
+require("dotenv").config();
 const app = express();
+const PORT = process.env.PORT || 6003;
 
 app.use('/images', express.static('images'));
 app.use(logger('dev'));
@@ -20,9 +22,7 @@ const noteRoute = require('./routes/note')
 app.use('/', userRoute)
 app.use('/note', noteRoute)
 
-const PORT = process.env.PORT || 6003;
-
-app.listen(PORT, process.env.IP, function () {
+app.listen(PORT,  function () {
     console.log("Server started");
 });
 
